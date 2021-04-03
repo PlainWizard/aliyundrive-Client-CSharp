@@ -7,7 +7,7 @@ C# Client for aliyundrive
 
 主要用于上传文件,文件查看方面不完善,建议使用官方app智能分类管理
 
-交流反馈群:476304388
+阿里云盘Windows客户端
 
 部分功能:
 
@@ -32,7 +32,9 @@ C# Client for aliyundrive
 
 - [下载客户端体验](https://pan.wyfxw.cn/plainwizard/aliyundrive-Client-CSharp.exe)
 
-如果觉得对您有帮助,并愿意赞赏:<a href="docs/alipay.html">支付宝收款码</a>
+交流反馈群:476304388
+
+软件由个人开发,如果觉得对您有帮助,并愿意赞赏:[支付宝收款码](docs/alipay.html)
 
 ## 相关链接
 
