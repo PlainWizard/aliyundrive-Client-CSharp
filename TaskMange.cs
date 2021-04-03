@@ -69,6 +69,7 @@ namespace aliyundrive_Client_CSharp
             lock (lock_obj)
             {
                 tasks.Insert(0, task);
+                if (task.Status != 0) return;
                 if (CurrentCount < MaxCount) task.task = RunTask(task);
             }
             OnTaskChange();
@@ -195,20 +196,24 @@ namespace aliyundrive_Client_CSharp
     {
         private ObservableCollection<DataItem> extList = new ObservableCollection<DataItem>();
         public ObservableCollection<DataItem> ExtList { get { return extList; } }
+        public Dictionary<string, string> ParentIDs = new Dictionary<string, string>();
         public bool isExtExists(string name)
         {
             return ExtList.Where(o => o.Name == name).Count() > 0;
         }
         public bool Status = false;
         public List<string> ignore = new List<string>() { "\\node_modules", "\\logs", "\\.vs", "\\.git" };
+        bool adding = false;
         public async void Add(string file, Action<Action> invoke)
         {
             if (!Status) return;
             await Task.Delay(3000);//优化同步速度O(∩_∩)O
+            while (adding) await Task.Delay(1000);
             var f = new System.IO.FileInfo(file);
             if (!f.Exists) return;
             try
             {
+                adding = true;
                 foreach (var item in ignore)
                 {
                     if (file.Contains(item)) return;
@@ -216,18 +221,23 @@ namespace aliyundrive_Client_CSharp
                 var ext = ExtList.Where(o => o.IsEnabled && o.Name == f.Extension).ToList();
                 if (ext.Count == 0) return;
                 if (!file.StartsWith(MainWindow.localRootDir)) throw new Exception("根目录异常");
-                var relativeFile = file.Substring(MainWindow.localRootDir.Length + 1);
+                var relativeFile = file.Substring(MainWindow.localRootDir.Length + 1).Replace("\\","/");
                 //dir 所在相对当前路径的目录 格式为 一层目录(aaa/) 二层目录(aaa/bbb/)
                 string fid = "root";
-                var ms = Regex.Matches(relativeFile, "([^\\\\]+?)\\\\");
+                var ms = Regex.Matches(relativeFile, "([^/]+?)/");
                 if (ms.Count > 0)
                 {
-                    var u = new upload();
-                    foreach (Match m in ms)
+                    if (!ParentIDs.ContainsKey(relativeFile))
                     {
-                        Console.WriteLine($"同步创建目录[{relativeFile}]:{m.Groups[1].Value}");
-                        fid = await u.getfolder(fid, m.Groups[1].Value);
+                        var u = new upload();
+                        foreach (Match m in ms)
+                        {
+                            Console.WriteLine($"同步创建目录[{relativeFile}]:{m.Groups[1].Value}");
+                            fid = await u.getfolder(fid, m.Groups[1].Value);
+                        }
+                        ParentIDs[relativeFile] = fid;
                     }
+                    fid = ParentIDs[relativeFile];
                 }
                 var r = await new file().search(fid, f.Name);
                 if (!r.Yes) throw new Exception(r.Error);
@@ -254,8 +264,12 @@ namespace aliyundrive_Client_CSharp
             {
                 invoke(() =>
                 {
-                    TaskMange.Add(new TaskInfo { Type = TaskType.同步, Status = 3, Name = f.Name + $"[{ex.Error()}]" });
+                    TaskMange.Add(new TaskInfo { Type = TaskType.同步, FullName = f.FullName, Status = 3, Name = f.Name + $"[{ex.Error()}]" });
                 });
+            }
+            finally
+            {
+                adding = false;
             }
         }
     }

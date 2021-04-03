@@ -633,7 +633,7 @@ namespace aliyundrive_Client_CSharp
                             }
                             ShowTopTip("要尝试秒传文件吗?" + Environment.NewLine + str, () =>
                             {
-                                Fap.FAP_rapid_upload(fap, serverDirectory_file_id);
+                                Fap.FAP_rapid_upload(fap, serverDirectory_file_id, cb => { Dispatcher.Invoke(cb); });
                             });
                         }
                     }

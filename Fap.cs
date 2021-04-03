@@ -38,14 +38,16 @@ namespace aliyundrive_Client_CSharp
             catch { }
             return null;
         }
-        public static void FAP_rapid_upload(Fap fap,string fid)
+        public static void FAP_rapid_upload(Fap fap,string fid, Action<Action> invoke)
         {
             foreach (var item in fap.list)
             {
                 //dir 所在相对当前路径的目录 格式为 一层目录(aaa/) 二层目录(aaa/bbb/)
                 if (string.IsNullOrEmpty(item.dir))
                 {
-                    TaskMange.Add(new TaskInfo { Type = TaskType.上传, Name = item.name, sha1 = item.sha1, size = item.size, parent_file_id = fid });
+                    invoke(() => {
+                        TaskMange.Add(new TaskInfo { Type = TaskType.上传, Name = item.name, sha1 = item.sha1, size = item.size, parent_file_id = fid });
+                    });
                 }
                 else
                 {
@@ -55,17 +57,27 @@ namespace aliyundrive_Client_CSharp
                             var u = new upload();
                             var ms = Regex.Matches(item.dir, "([^/]+?)/");
                             if (ms.Count == 0) throw new Exception("目录错误");
+
                             string _fid = fid;
-                            foreach (Match m in ms)
+                            if (!AsyncTaskMange.Instance.ParentIDs.ContainsKey(item.dir))
                             {
-                                Console.WriteLine($"fap创建目录[{item.dir}]:{m.Groups[1].Value}");
-                                _fid = await u.getfolder(_fid, m.Groups[1].Value);
+                                foreach (Match m in ms)
+                                {
+                                    Console.WriteLine($"fap创建目录[{item.dir}]:{m.Groups[1].Value}");
+                                    _fid = await u.getfolder(_fid, m.Groups[1].Value);
+                                }
+                                AsyncTaskMange.Instance.ParentIDs[item.dir] = _fid;
                             }
-                            TaskMange.Add(new TaskInfo { Type = TaskType.上传, Name = item.name, sha1 = item.sha1, size = item.size, parent_file_id = _fid });
+                            _fid = AsyncTaskMange.Instance.ParentIDs[item.dir];
+                            invoke(() => {
+                                TaskMange.Add(new TaskInfo { Type = TaskType.上传, Name = item.name, sha1 = item.sha1, size = item.size, parent_file_id = _fid });
+                            });
                         }
                         catch (Exception ex)
                         {
-                            TaskMange.Add(new TaskInfo { Type = TaskType.上传,Status=3, Name = item.name + $"[{ex.Error()}]", sha1 = item.sha1, size = item.size, parent_file_id = fid });
+                            invoke(() => {
+                                TaskMange.Add(new TaskInfo { Type = TaskType.上传, Status = 3, Name = item.name + $"[{ex.Error()}]", sha1 = item.sha1, size = item.size, parent_file_id = fid });
+                            });
                         }
                     });
                 }
