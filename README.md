@@ -34,7 +34,9 @@ C# Client for aliyundrive
 
 交流反馈群:476304388
 
-软件由个人开发,如果觉得对您有帮助,并愿意赞赏:[支付宝收款码](docs/alipay.html)
+软件由个人开发,如果觉得对您有帮助,并愿意赞赏:[支付宝收款码](https://pan.wyfxw.cn/plainwizard/ali.jpg)
+
+有你的支持,是我前进的动力!
 
 ## 相关链接
 
