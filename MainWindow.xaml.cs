@@ -43,6 +43,7 @@ namespace aliyundrive_Client_CSharp
                 task_MaxCount.ItemsSource = task_MaxCountList;
                 task_MaxCount.Text = "10";
                 taskList.ItemsSource = TaskMange.Tasks;
+                AsyncTaskMange.Instance.invoke = cb => { Dispatcher.Invoke(cb); };
                 SyncButton.Background = AsyncTaskMange.Instance.Status ? System.Windows.Media.Brushes.Orange : null;
                 AddDirectory(null);
             });
@@ -68,7 +69,7 @@ namespace aliyundrive_Client_CSharp
                         UpdateShowFile();
                     });
                 }
-                AsyncTaskMange.Instance.Add(path, cb => { Dispatcher.Invoke(cb); });
+                AsyncTaskMange.Instance.Add(path);
             });
             RefreshData();
             Sync();
@@ -79,7 +80,7 @@ namespace aliyundrive_Client_CSharp
             var dir = new DirectoryInfo(MainWindow.localRootDir);
             foreach (var item in dir.GetFiles("*", SearchOption.AllDirectories))
             {
-                AsyncTaskMange.Instance.Add(item.FullName, cb => { Dispatcher.Invoke(cb); });
+                AsyncTaskMange.Instance.Add(item.FullName);
             }
         }
         async void RefreshData()

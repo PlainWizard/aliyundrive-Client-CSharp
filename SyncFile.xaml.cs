@@ -47,7 +47,7 @@ namespace aliyundrive_Client_CSharp
             var dir = new DirectoryInfo(MainWindow.localRootDir);
             foreach (var item in dir.GetFiles("*", SearchOption.AllDirectories))
             {
-                AsyncTaskMange.Instance.Add(item.FullName, cb => { Dispatcher.Invoke(cb); });
+                AsyncTaskMange.Instance.Add(item.FullName);
             }
         }
         void ChangeStatus()

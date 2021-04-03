@@ -196,6 +196,9 @@ namespace aliyundrive_Client_CSharp
     {
         private ObservableCollection<DataItem> extList = new ObservableCollection<DataItem>();
         public ObservableCollection<DataItem> ExtList { get { return extList; } }
+        [NonSerialized]
+        public Action<Action> invoke;
+        ConcurrentQueue<string> task=new ConcurrentQueue<string>();
         public Dictionary<string, string> ParentIDs = new Dictionary<string, string>();
         public bool isExtExists(string name)
         {
@@ -204,16 +207,33 @@ namespace aliyundrive_Client_CSharp
         public bool Status = false;
         public List<string> ignore = new List<string>() { "\\node_modules", "\\logs", "\\.vs", "\\.git" };
         bool adding = false;
-        public async void Add(string file, Action<Action> invoke)
+        public async void Add(string file)
         {
             if (!Status) return;
-            await Task.Delay(3000);//优化同步速度O(∩_∩)O
-            while (adding) await Task.Delay(1000);
+            await Task.Delay(1000);//优化同步速度O(∩_∩)O
+
+            lock (lock_obj)
+            {
+                if (task.Where(s => s == file).Count() > 0) return;
+                task.Enqueue(file);
+                if (adding) return;
+                adding = true;
+            }
+            AddQueue();
+        }
+        public async void AddQueue()
+        {
+            string file;
+            if (!task.TryDequeue(out file))
+            {
+                adding = false; 
+                return;
+            }
             var f = new System.IO.FileInfo(file);
-            if (!f.Exists) return;
             try
             {
-                adding = true;
+                if (!f.Exists) return;
+
                 foreach (var item in ignore)
                 {
                     if (file.Contains(item)) return;
@@ -258,7 +278,6 @@ namespace aliyundrive_Client_CSharp
                 {
                     TaskMange.Add(new TaskInfo { Type = TaskType.同步, FullName = f.FullName, Name = f.Name, parent_file_id = fid });
                 });
-
             }
             catch (Exception ex)
             {
@@ -269,7 +288,7 @@ namespace aliyundrive_Client_CSharp
             }
             finally
             {
-                adding = false;
+                AddQueue();
             }
         }
     }
