@@ -3,8 +3,23 @@ C# Client for aliyundrive
 
 ## 概述
 
-由于需要找一个小网盘来放e小天应用,找了一堆也没合适的
-看了下阿里云盘在公测不错,而且全开放的接口形式,非常适合拿来做小网盘,1T空间足够用了,所以写了个c#同步文件到网盘的客户端
+学了一点WPF皮毛,刚好阿里云盘在公测,所以写了个c#同步文件到网盘的客户端
+
+主要用于上传文件,文件查看方面不完善,建议使用官方app智能分类管理
+
+交流反馈群:476304388
+
+部分功能:
+
+-   `自动同步上传`
+-   `文件批量上传`
+-   `批量拖拽上传`
+-   `剪贴板上传`
+-   `文件目录增删改查`
+-   `复制下载链接`
+-   `生成链接二维码`
+-   `防盗链下载器`
+-   `支持在线分享` - [FAP文件验证](https://file.wyfxw.cn/)
 
 ## 运行环境
 - .NET Framework 4.6
@@ -13,9 +28,17 @@ C# Client for aliyundrive
 
 编译好成品放在云盘欢迎下载体验云盘下载
 
-- [下载客户端体验](https://plainwizard.github.io/aliyundrive-Client-CSharp/)
+把文件放在哪个目录里运行,就是以哪个目录为根目录进行同步
+
+- [下载客户端体验](https://pan.wyfxw.cn/plainwizard/aliyundrive-Client-CSharp.exe)
+
+如果觉得对您有帮助,并愿意赞赏:<a href="docs/alipay.html">支付宝收款码</a>
 
 ## 相关链接
+
+- [防盗链下载器17KB](https://github.com/PlainWizard/RefererDownload)
+
+- [FAP文件在线分享](https://file.wyfxw.cn/)
 
 - [阿里云盘公测地址](https://www.aliyundrive.com/apply)
 
