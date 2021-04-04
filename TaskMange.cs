@@ -198,24 +198,33 @@ namespace aliyundrive_Client_CSharp
         public ObservableCollection<DataItem> ExtList { get { return extList; } }
         [NonSerialized]
         public Action<Action> invoke;
-        ConcurrentQueue<string> task=new ConcurrentQueue<string>();
+        ConcurrentQueue<string> queue = new ConcurrentQueue<string>();
+        [NonSerialized]
         public Dictionary<string, string> ParentIDs = new Dictionary<string, string>();
+        public Dictionary<string, string> serverFileCache = new Dictionary<string, string>();
+        public void Clear()
+        {
+            ParentIDs = new Dictionary<string, string>();
+            serverFileCache = new Dictionary<string, string>();
+            queue = new ConcurrentQueue<string>();
+            Config_Save();
+        }
         public bool isExtExists(string name)
         {
             return ExtList.Where(o => o.Name == name).Count() > 0;
         }
         public bool Status = false;
-        public List<string> ignore = new List<string>() { "\\node_modules", "\\logs", "\\.vs", "\\.git" };
+        public List<string> ignore = new List<string>() { "\\node_modules", "\\logs", "\\.vs", "\\.git", "\\obj", "\\bin", "\\packages" };
         bool adding = false;
         public async void Add(string file)
         {
             if (!Status) return;
-            await Task.Delay(1000);//优化同步速度O(∩_∩)O
+            await Task.Delay(6000);//优化同步速度O(∩_∩)O
 
             lock (lock_obj)
             {
-                if (task.Where(s => s == file).Count() > 0) return;
-                task.Enqueue(file);
+                if (queue.Where(s => s == file).Count() > 0) return;
+                queue.Enqueue(file);
                 if (adding) return;
                 adding = true;
             }
@@ -224,9 +233,10 @@ namespace aliyundrive_Client_CSharp
         public async void AddQueue()
         {
             string file;
-            if (!task.TryDequeue(out file))
+            Console.WriteLine($"队列数量:{queue.Count}");
+            if (!queue.TryDequeue(out file))
             {
-                adding = false; 
+                adding = false;
                 return;
             }
             var f = new System.IO.FileInfo(file);
@@ -240,15 +250,23 @@ namespace aliyundrive_Client_CSharp
                 }
                 var ext = ExtList.Where(o => o.IsEnabled && o.Name == f.Extension).ToList();
                 if (ext.Count == 0) return;
-                if (!file.StartsWith(MainWindow.localRootDir)) throw new Exception("根目录异常");
-                var relativeFile = file.Substring(MainWindow.localRootDir.Length + 1).Replace("\\","/");
-                //dir 所在相对当前路径的目录 格式为 一层目录(aaa/) 二层目录(aaa/bbb/)
-                string fid = "root";
-                var ms = Regex.Matches(relativeFile, "([^/]+?)/");
-                if (ms.Count > 0)
+                if (!f.FullName.StartsWith(MainWindow.localRootDir)) throw new Exception("根目录异常");
+                var task = new TaskInfo { Type = TaskType.同步, FullName = f.FullName, Name = f.Name };
+                using (var stream = Util.GetFileStream(f.FullName))
                 {
+                    task.sha1 = Util.sha1(stream);
+                    task.size = stream.Length;
+                }
+                if (serverFileCache.ContainsKey(file) && serverFileCache[file] == $"{task.sha1};{task.size}") return;
+
+                string fid = "root";
+                if (f.Directory.FullName != MainWindow.localRootDir)
+                {
+                    var relativeFile = f.Directory.FullName.Substring(MainWindow.localRootDir.Length + 1).Replace("\\", "/") + "/";
+                    //dir 所在相对当前路径的目录 格式为 一层目录(aaa/) 二层目录(aaa/bbb/)
                     if (!ParentIDs.ContainsKey(relativeFile))
                     {
+                        var ms = Regex.Matches(relativeFile, "([^/]+?)/");
                         var u = new upload();
                         foreach (Match m in ms)
                         {
@@ -259,24 +277,22 @@ namespace aliyundrive_Client_CSharp
                     }
                     fid = ParentIDs[relativeFile];
                 }
+                task.parent_file_id = fid;
                 var r = await new file().search(fid, f.Name);
                 if (!r.Yes) throw new Exception(r.Error);
                 if (r.obj.items.Count > 0)
                 {
-                    using (var stream = Util.GetFileStream(f.FullName))
+                    foreach (var item in r.obj.items)
                     {
-                        var sha1 = Util.sha1(stream);
-                        var size = stream.Length;
-                        foreach (var item in r.obj.items)
-                        {
-
-                            if (item.content_hash == sha1 && item.size == size) return;
-                        }
+                        serverFileCache[file] = $"{task.sha1};{task.size}";
+                        Config_Save();
+                        if (item.content_hash == task.sha1 && item.size == task.size) return;
                     }
                 }
+
                 invoke(() =>
                 {
-                    TaskMange.Add(new TaskInfo { Type = TaskType.同步, FullName = f.FullName, Name = f.Name, parent_file_id = fid });
+                    TaskMange.Add(task);
                 });
             }
             catch (Exception ex)
@@ -288,7 +304,7 @@ namespace aliyundrive_Client_CSharp
             }
             finally
             {
-                AddQueue();
+                _ = Task.Run(AddQueue);
             }
         }
     }

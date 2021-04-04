@@ -9,6 +9,12 @@ using System.Threading.Tasks;
 
 namespace aliyundrive_Client_CSharp
 {
+    class FapShare : MagBase
+    {
+        public string code { get; set; }
+        public string message { get; set; }
+        public string id { get; set; }
+    }
     class Fap
     {
         public string ver { get; set; }

@@ -150,7 +150,14 @@ namespace aliyundrive_Client_CSharp.aliyundrive
         }
         public void Config_Save()
         {
-            lock(lock_obj)File.WriteAllText($"{AppDataPath}\\.Config.{typeof(T).FullName}.ini", JsonConvert.SerializeObject(this));
+            try
+            {
+                lock (lock_obj) File.WriteAllText($"{AppDataPath}\\.Config.{typeof(T).FullName}.ini", JsonConvert.SerializeObject(this));
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex);
+            }
         }
         public void Config_Save(string name)
         {

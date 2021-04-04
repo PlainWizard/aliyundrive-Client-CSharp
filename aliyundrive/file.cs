@@ -262,18 +262,18 @@ namespace aliyundrive_Client_CSharp.aliyundrive
         {
             var f = this;
             f.check_name_mode = "ignore";// ignore, auto_rename, refuse.
-            if (task.FullName == "")
-            {
-                f.content_hash = task.sha1;
-                f.size = task.size;
-            }
-            else
+            if (string.IsNullOrEmpty(task.sha1)|| task.size==0)
             {
                 using (var stream = Util.GetFileStream(task.FullName))
                 {
                     f.content_hash = Util.sha1(stream);
                     f.size = stream.Length;
                 }
+            }
+            else
+            {
+                f.content_hash = task.sha1;
+                f.size = task.size;
             }
             f.content_hash_name = "sha1";
             f.content_type = "application/octet-stream";

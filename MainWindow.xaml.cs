@@ -27,6 +27,7 @@ namespace aliyundrive_Client_CSharp
         {
             InitializeComponent();
             Task.Run(InitFile);
+            Title += System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -225,7 +226,7 @@ namespace aliyundrive_Client_CSharp
         #endregion
         #region 服务器区
         private void Button_Click_Server_OpenDownUrl(object sender, RoutedEventArgs e)
-        {            
+        {
             foreach (info_file item in serverFile.SelectedItems)
             {
                 Console.WriteLine($"OpenDownUrl:{item.name},{item.file_id},{item.download_url}");
@@ -234,31 +235,96 @@ namespace aliyundrive_Client_CSharp
                 break;
             }
         }
-        private void Button_Click_Server_Show(object sender, RoutedEventArgs e)
+        private async void Button_Click_Server_Show(object sender, RoutedEventArgs e)
         {
             try
             {
-                Fap fap = new Fap() { tab= "aliyundrive", list=new List<FapInfo>()};
-                foreach (info_file item in serverFile.SelectedItems)
+                LoadingShow();
+                Fap fap = new Fap() { tab = "aliyundrive", des = "", list = new List<FapInfo>() };
+                if (_currentDirectory_server.Count > 0)
+                    fap.des = _currentDirectory_server[_currentDirectory_server.Count - 1].name;
+                foreach (info_file item in serverFile.SelectedItems.Cast<info_file>().ToList())
                 {
-                    if (item.type == "folder") throw new Exception("暂时不支持分享目录");
-                    fap.list.Add(new FapInfo {
-                        name=item.name 
-                        ,type=item.type
-                        ,updated=item.updated_at.Ticks
-                        ,ext=item.file_extension
-                        ,size=item.size
-                        ,sha1=item.content_hash
-                        ,c1=item.content_hash_name
-                        ,c2=item.crc64_hash
-                    });
+                    if (item.type == "folder")
+                    {
+                        var f = new file();
+                        f.parent_file_id = item.file_id;
+                        f.drive_id = token.Instance.default_drive_id;
+                        f.limit = 1500;
+                        var r = await f.list();
+                        if (!r.Yes) throw new Exception(r.Error);
+                        var dir = item.name + "/";
+                        fap.des = item.name;
+                        foreach (var d in r.obj.items)
+                        {
+                            if (d.type != "folder")
+                            {
+                                fap.list.Add(new FapInfo
+                                {
+                                    name = d.name
+                                 ,
+                                    type = d.type
+                                 ,
+                                    updated = d.updated_at.Ticks
+                                 ,
+                                    ext = d.file_extension
+                                 ,
+                                    size = d.size
+                                 ,
+                                    sha1 = d.content_hash
+                                 ,
+                                    c1 = d.content_hash_name
+                                 ,
+                                    c2 = d.crc64_hash
+                                    ,
+                                    dir = dir
+                                });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (fap.des == "") fap.des = item.name;
+                        fap.list.Add(new FapInfo
+                        {
+                            name = item.name
+                            ,
+                            type = item.type
+                            ,
+                            updated = item.updated_at.Ticks
+                            ,
+                            ext = item.file_extension
+                            ,
+                            size = item.size
+                            ,
+                            sha1 = item.content_hash
+                            ,
+                            c1 = item.content_hash_name
+                            ,
+                            c2 = item.crc64_hash
+                        });
+
+                    }
                 }
-                if (fap.list.Count==0) throw new Exception("没有文件");
-                Process.Start("https://file.wyfxw.cn/?fap="+Fap.FAP_set(fap));
+                if (fap.list.Count == 0) throw new Exception("没有文件");
+                var h=new Hclient<FapShare>();
+                var r2 = await h.GetAsJsonAsync("https://api.wyfxw.cn/api/file/fap?fap=" + Fap.FAP_set(fap));
+                if (!r2.Yes||r2.obj.code!="200")
+                {
+                    Dispatcher.Invoke(()=> {
+                        MessageBox.Show(r2.ok ? r2.obj.code : r2.Error);
+                    });
+                    return;
+                }
+                Process.Start("https://file.wyfxw.cn/?id=" + r2.obj.id);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
+            }
+            finally
+            {
+                LoadingHide();
             }
         }
         private void Button_Click_Server_CopyDownUrl(object sender, RoutedEventArgs e)
@@ -270,7 +336,7 @@ namespace aliyundrive_Client_CSharp
                 if (serverFile.SelectedItems.Count == 1)
                 {
                     var item = ((info_file)serverFile.SelectedItems[0]);
-                    if (item.type == "folder") throw new Exception("暂时不支持复制目录");
+                    if (item.type == "folder") throw new Exception("暂时不支持复制目录,可以使用fap分享");
                     urls = item.download_url;
                     Console.WriteLine($"copy:{urls}");
                 }
@@ -279,7 +345,7 @@ namespace aliyundrive_Client_CSharp
                     foreach (info_file item in serverFile.SelectedItems)
                     {
                         Console.WriteLine($"copy:{item.name},{item.file_id},{item.download_url}");
-                        if (item.type == "folder") throw new Exception("暂时不支持复制目录");
+                        if (item.type == "folder") throw new Exception("暂时不支持复制目录,可以使用fap分享");
                         urls += $"{item.name}:{item.download_url}\r\n";
                     }
                 }
@@ -448,9 +514,10 @@ namespace aliyundrive_Client_CSharp
         private void Button_Click_Server_Search(object sender, RoutedEventArgs e)
         {
             if (serverFile.SelectedItem != null) serverEdit.Text = ((info_file)serverFile.SelectedItem).name;
-            
+
             serverEditV.Visibility = Visibility.Visible;
-            TaskOK = async (name) => {
+            TaskOK = async (name) =>
+            {
                 Dispatcher.Invoke(() =>
                 {
                     LoadingShow();
@@ -725,6 +792,7 @@ namespace aliyundrive_Client_CSharp
                 token.Instance.refresh_token = "";
                 token.Instance.access_token = "";
                 token.Instance.Config_Save();
+                AsyncTaskMange.Instance.Clear();
                 Task.Run(ShowUserinfoAsync);
             }
             catch (Exception ex)
