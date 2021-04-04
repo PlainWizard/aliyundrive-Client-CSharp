@@ -1,6 +1,8 @@
 # aliyundrive-Client-CSharp
 C# Client for aliyundrive
 
+下载器直接用的 [RefererDownload](https://github.com/PlainWizard/RefererDownload),需要一起下载才能编译
+
 ## 概述
 
 学了一点WPF皮毛,刚好阿里云盘在公测,所以写了个c#同步文件到网盘的客户端
@@ -19,7 +21,8 @@ C# Client for aliyundrive
 -   `复制下载链接`
 -   `生成链接二维码`
 -   `防盗链下载器`
--   `支持在线分享` - [FAP文件验证](https://file.wyfxw.cn/)
+-   `文件在线分享`
+-   `文件夹分享`
 
 ## 运行环境
 - .NET Framework 4.6
