@@ -363,25 +363,32 @@ namespace aliyundrive_Client_CSharp
 
             try
             {
-                string urls = "";
+                List<String> list = new List<string>();
+                string share_task_name = "";
                 if (serverFile.SelectedItems.Count == 1)
                 {
                     var item = ((info_file)serverFile.SelectedItems[0]);
-                    if (item.type == "folder") throw new Exception("暂时不支持复制目录,可以使用fap分享");
+                    //if (item.type == "folder") throw new Exception("暂时不支持分享目录,可以使用fap分享");
 
-                    Console.WriteLine($"Button_Click_Server_Del:{item.name},{item.file_id}");
-                    TaskMange.Add(new TaskInfo { Type = TaskType.分享, file_id = item.file_id, Name = item.name });
-                    Console.WriteLine($"copy:{urls}");
+                    Console.WriteLine($"Button_Click_Server_Share:{item.name},{item.file_id}");
+
+                    list.Add(item.file_id);
+                    share_task_name = item.name;
+                    
                 }
                 else
                 {
+
                     foreach (info_file item in serverFile.SelectedItems)
                     {
-                        Console.WriteLine($"copy:{item.name},{item.file_id},{item.download_url}");
-                        if (item.type == "folder") throw new Exception("暂时不支持复制目录,可以使用fap分享");
-                        urls += $"{item.name}:{item.download_url}\r\n";
+                        Console.WriteLine($"share:{item.name},{item.file_id}");
+                        // if (item.type == "folder") throw new Exception("暂时不支持分享目录,可以使用fap分享");
+                        list.Add(item.file_id);
+                        share_task_name = item.name;
                     }
+                    share_task_name += $" 等{serverFile.SelectedItems.Count}个文件 ";
                 }
+                TaskMange.Add(new TaskInfo { Type = TaskType.分享, file_id_list = list, Name = share_task_name}) ;
 
                 //if (urls == "") throw new Exception("没有url");
                 //Clipboard.SetText(urls);

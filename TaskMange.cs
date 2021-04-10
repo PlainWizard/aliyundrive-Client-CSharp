@@ -148,7 +148,7 @@ namespace aliyundrive_Client_CSharp
         {
             try
             {
-                var r = await new upload().share(task.file_id, task.Name, task);
+                var r = await new upload().share(task.file_id_list, task.Name, task);
                 if (r.success)
                 {
                     var content = JsonConvert.DeserializeObject<Dictionary<object, object>>(r.body);

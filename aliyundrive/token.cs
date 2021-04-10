@@ -31,6 +31,10 @@ namespace aliyundrive_Client_CSharp.aliyundrive
         {
             //"refresh_token":"72c8fa104efe4536816165dcebf1619c"
             var m=Regex.Match(str, "\"refresh_token\":\"(.+?)\"");
+            if (!m.Success)
+            {
+                m = Regex.Match(str, "refresh_token: \"(.+?)\"");
+            }
             Instance.refresh_token = m.Success ? m.Groups[1].Value : "";
         }
         public async Task<HttpResult<token>> Refresh()
