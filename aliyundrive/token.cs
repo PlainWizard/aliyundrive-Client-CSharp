@@ -30,10 +30,14 @@ namespace aliyundrive_Client_CSharp.aliyundrive
         public static void SetToken(string str)
         {
             //"refresh_token":"72c8fa104efe4536816165dcebf1619c"
-            var m=Regex.Match(str, "\"refresh_token\":\"(.+?)\"");
+            var m=Regex.Match(str, "\"refresh_token\".+?\"(.+?)\"");
             if (!m.Success)
             {
-                m = Regex.Match(str, "refresh_token: \"(.+?)\"");
+                m = Regex.Match(str, "\\\\\"refresh_token\\\\\".+?\\\\\"(.+?)\\\\\"");
+            }
+            if (!m.Success)
+            {
+                m = Regex.Match(str, "([a-zA-Z0-9]{32})");
             }
             Instance.refresh_token = m.Success ? m.Groups[1].Value : "";
         }
