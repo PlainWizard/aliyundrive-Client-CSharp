@@ -358,6 +358,39 @@ namespace aliyundrive_Client_CSharp
                 MessageBox.Show(ex.Message);
             }
         }
+        private void Button_Click_Server_Share(object sender, RoutedEventArgs e)
+        {
+
+            try
+            {
+                string urls = "";
+                if (serverFile.SelectedItems.Count == 1)
+                {
+                    var item = ((info_file)serverFile.SelectedItems[0]);
+                    if (item.type == "folder") throw new Exception("暂时不支持复制目录,可以使用fap分享");
+
+                    Console.WriteLine($"Button_Click_Server_Del:{item.name},{item.file_id}");
+                    TaskMange.Add(new TaskInfo { Type = TaskType.分享, file_id = item.file_id, Name = item.name });
+                    Console.WriteLine($"copy:{urls}");
+                }
+                else
+                {
+                    foreach (info_file item in serverFile.SelectedItems)
+                    {
+                        Console.WriteLine($"copy:{item.name},{item.file_id},{item.download_url}");
+                        if (item.type == "folder") throw new Exception("暂时不支持复制目录,可以使用fap分享");
+                        urls += $"{item.name}:{item.download_url}\r\n";
+                    }
+                }
+
+                //if (urls == "") throw new Exception("没有url");
+                //Clipboard.SetText(urls);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
         void ShowServerTip(string msg)
         {
             Dispatcher.Invoke(() =>
@@ -627,6 +660,16 @@ namespace aliyundrive_Client_CSharp
         private void task_MaxCount_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             TaskMange.MaxCount = (int)task_MaxCount.SelectedItem;
+        }
+        private void Button_Click_TaskCopyContent(object sender, RoutedEventArgs e)
+        {
+            List<TaskInfo> del = new List<TaskInfo>();
+            foreach (TaskInfo item in taskList.SelectedItems)
+            {
+                //复制任务名字
+                Clipboard.SetDataObject(item.Name);
+                //Clipboard.SetText(item.Name);
+            }
         }
         private void Button_Click_TaskDel(object sender, RoutedEventArgs e)
         {
