@@ -358,6 +358,46 @@ namespace aliyundrive_Client_CSharp
                 MessageBox.Show(ex.Message);
             }
         }
+        private void Button_Click_Server_Share(object sender, RoutedEventArgs e)
+        {
+
+            try
+            {
+                List<String> list = new List<string>();
+                string share_task_name = "";
+                if (serverFile.SelectedItems.Count == 1)
+                {
+                    var item = ((info_file)serverFile.SelectedItems[0]);
+                    //if (item.type == "folder") throw new Exception("暂时不支持分享目录,可以使用fap分享");
+
+                    Console.WriteLine($"Button_Click_Server_Share:{item.name},{item.file_id}");
+
+                    list.Add(item.file_id);
+                    share_task_name = item.name;
+                    
+                }
+                else
+                {
+
+                    foreach (info_file item in serverFile.SelectedItems)
+                    {
+                        Console.WriteLine($"share:{item.name},{item.file_id}");
+                        // if (item.type == "folder") throw new Exception("暂时不支持分享目录,可以使用fap分享");
+                        list.Add(item.file_id);
+                        share_task_name = item.name;
+                    }
+                    share_task_name += $" 等{serverFile.SelectedItems.Count}个文件 ";
+                }
+                TaskMange.Add(new TaskInfo { Type = TaskType.分享, file_id_list = list, Name = share_task_name}) ;
+
+                //if (urls == "") throw new Exception("没有url");
+                //Clipboard.SetText(urls);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
         void ShowServerTip(string msg)
         {
             Dispatcher.Invoke(() =>
@@ -627,6 +667,16 @@ namespace aliyundrive_Client_CSharp
         private void task_MaxCount_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             TaskMange.MaxCount = (int)task_MaxCount.SelectedItem;
+        }
+        private void Button_Click_TaskCopyContent(object sender, RoutedEventArgs e)
+        {
+            List<TaskInfo> del = new List<TaskInfo>();
+            foreach (TaskInfo item in taskList.SelectedItems)
+            {
+                //复制任务名字
+                Clipboard.SetDataObject(item.Name);
+                //Clipboard.SetText(item.Name);
+            }
         }
         private void Button_Click_TaskDel(object sender, RoutedEventArgs e)
         {

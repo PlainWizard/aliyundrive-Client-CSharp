@@ -258,6 +258,23 @@ namespace aliyundrive_Client_CSharp.aliyundrive
             });
             return r;
         }
+        public async Task<HttpResult<upload>> share(List<String> file_id_list, string name, TaskInfo task)
+        {
+            var f = this;
+            f.drive_id = token.Instance.default_drive_id;
+            f.file_id = file_id;
+            f.name = name;
+            var client = new Hclient<upload>();
+            
+            var r = await client.PostAsJsonAsync(DriveApi.file_share, new
+            {
+                drive_id = drive_id,
+                file_id_list = file_id_list,
+                share_pwd = Guid.NewGuid().ToString().Substring(0, 4),
+                expiration = "2030-04-15T17:13:58.720+08:00"
+            });
+            return r;
+        }
         public async Task<HttpResult<upload>> Upload(string file_id, string name,TaskInfo task)
         {
             var f = this;

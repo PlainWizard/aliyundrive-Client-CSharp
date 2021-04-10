@@ -12,7 +12,7 @@ namespace aliyundrive_Client_CSharp
 
     public enum TaskType
     {
-        删除, 上传, 秒传, 目录, 改名,同步
+        删除, 上传, 秒传, 目录, 改名,同步, 分享
     }
 
 
@@ -20,6 +20,7 @@ namespace aliyundrive_Client_CSharp
     {
         public string parent_file_id = "root";
         public string file_id = "";
+        public List<String> file_id_list;
         public string sha1 = "";
         public long size = 0;
         public string file_name = "";

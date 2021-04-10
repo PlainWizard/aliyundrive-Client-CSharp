@@ -8,6 +8,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using System.Windows;
+using System.Threading;
 
 namespace aliyundrive_Client_CSharp
 {
@@ -61,6 +64,7 @@ namespace aliyundrive_Client_CSharp
                     case TaskType.删除: await Task_ServerDelFileAsync(task); break;
                     case TaskType.目录: await Task_Server_folder(task); break;
                     case TaskType.改名: await Task_Server_rename(task); break;
+                    case TaskType.分享: await Task_Server_share(task); break;
                 }
             });
         }
@@ -126,6 +130,34 @@ namespace aliyundrive_Client_CSharp
                 if (r.success)
                 {
                     OnServerFileChange(task.parent_file_id);
+                    task.Status = 2;
+                }
+                else
+                {
+                    task.Status = 3;
+                    task.Name = task.Name + $"[{r.Error}]";
+                }
+            }
+            catch (Exception ex)
+            {
+                task.Status = 3;
+                task.Name = task.Name + $"[{ex.Error()}]";
+            }
+        }
+        static async Task Task_Server_share(TaskInfo task)
+        {
+            try
+            {
+                var r = await new upload().share(task.file_id_list, task.Name, task);
+                if (r.success)
+                {
+                    var content = JsonConvert.DeserializeObject<Dictionary<object, object>>(r.body);
+                    var password = content["share_pwd"];
+                    var share_id = content["share_id"];
+                    var share_msg = content["share_msg"];
+                    var share_url = content["share_url"];
+                    // Clipboard.SetText($"{share_msg} {share_url}");
+                    task.Name = task.Name + $"{share_msg} {share_url}";
                     task.Status = 2;
                 }
                 else

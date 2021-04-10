@@ -25,6 +25,7 @@ namespace aliyundrive_Client_CSharp.aliyundrive
         public static string file_create = api + "/file/create";
         public static string file_update = api + "/file/update";
         public static string file_get = api + "/file/get";
+        public static string file_share = api + "/share_link/create";
         public static string batch = api + "/batch";
         public static string databox_get_personal_info = api + "/databox/get_personal_info";
     }

@@ -74,7 +74,7 @@ namespace aliyundrive_Client_CSharp
             aliyundrive.token.SetToken(Txt_token.Text);
             if (aliyundrive.token.Instance.refresh_token == "")
             {
-                Txt_token.Text = "token格式错误,浏览器登录后,按F12打开控制台输入以下命令获取token:\r\nlocalStorage.getItem('token')";
+                Txt_token.Text = "token格式错误,浏览器登录后,按F12打开控制台输入以下命令获取refresh_token:\r\nJSON.parse(localStorage.getItem('token'));";
             }
             else
             {

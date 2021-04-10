@@ -137,6 +137,7 @@
                                 <ContextMenu StaysOpen="true">
                                     <MenuItem Header="二维码" Click="Button_Click_Server_QrShow"/>
                                     <MenuItem Header="分享FAP" Click="Button_Click_Server_Show"/>
+                                    <MenuItem Header="官方分享" Click="Button_Click_Server_Share"/>
                                     <MenuItem Header="搜索" Click="Button_Click_Server_Search"/>
                                     <MenuItem Header="复制下载链接" Click="Button_Click_Server_CopyDownUrl"/>
                                     <MenuItem Header="打开下载器" Click="Button_Click_Server_OpenDownUrl"/>
@@ -200,6 +201,7 @@
             IsReadOnly="True">
                             <DataGrid.ContextMenu>
                                 <ContextMenu StaysOpen="true">
+                                    <MenuItem Header="复制内容" Click="Button_Click_TaskCopyContent"/>
                                     <MenuItem Header="删除" Click="Button_Click_TaskDel"/>
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
